@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorteo de Regalos</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 20px; 
+      background-color: #f7f7f7; 
+      text-align: center;
+    }
+    h1 { color: #333; }
+    input, button { margin: 10px; padding: 10px; font-size: 16px; }
+    button { cursor: pointer; }
+    .hidden { display: none; }
+    #players-list button { margin: 5px; }
+    #finish-button {
+      background-color: #28a745;
+      color: white;
+      font-size: 20px;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    #finish-button:hover {
+      background-color: #218838;
+    }
+    .player-button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .player-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sorteo de Regalos</h1>
+  
+  <!-- Sección de configuración inicial -->
+  <div id="input-section">
+    <label>Número de jugadores: 
+      <input type="number" id="num-players" min="2" required>
+    </label><br><br>
+    <label>Precio máximo del regalo (€): 
+      <input type="number" id="max-price" min="1" required>
+    </label><br><br>
+    <label>Día del sorteo (diciembre): 
+      <input type="number" id="sorteo-day" min="1" max="31" required>
+    </label><br><br>
+    <button onclick="startSetup()">Configurar Jugadores</button>
+  </div>
+
+  <!-- Sección para ingresar nombres y contraseñas -->
+  <div id="setup-section" class="hidden">
+    <h2>Introduce los nombres y contraseñas</h2>
+    <div id="players-setup"></div>
+    <button onclick="startSorteo()">Iniciar Sorteo</button>
+  </div>
+
+  <!-- Sección de sorteo -->
+  <div id="sorteo-section" class="hidden">
+    <h2>Selecciona tu nombre para ver a quién le haces el regalo</h2>
+    <div id="players-list"></div>
+    <button id="finish-button" onclick="showDetails()">Terminar</button>
+  </div>
+
+  <!-- Vista final con detalles del sorteo -->
+  <div id="final-details" class="hidden">
+    <h2>Detalles del Sorteo</h2>
+    <p id="details-info"></p>
+  </div>
+
+  <script>
+    let players = [];
+    let assignments = [];
+    let maxPrice = 0;
+    let sorteoDay = 0;
+
+    function startSetup() {
+      const numPlayers = document.getElementById("num-players").value;
+      maxPrice = document.getElementById("max-price").value;
+      sorteoDay = document.getElementById("sorteo-day").value;
+
+      if (numPlayers < 2 || maxPrice < 1 || sorteoDay < 1 || sorteoDay > 31) {
+        alert("Por favor, completa todos los campos correctamente.");
+        return;
+      }
+
+      document.getElementById("input-section").classList.add("hidden");
+      document.getElementById("setup-section").classList.remove("hidden");
+
+      const setupDiv = document.getElementById("players-setup");
+      setupDiv.innerHTML = "";
+
+      for (let i = 0; i < numPlayers; i++) {
+        setupDiv.innerHTML += `
+          <div>
+            <label>Nombre del jugador ${i + 1}:
+              <input type="text" id="player-name-${i}" required>
+            </label>
+            <label>Contraseña:
+              <input type="password" id="player-pass-${i}" required>
+            </label>
+          </div><br>
+        `;
+      }
+    }
+
+    function startSorteo() {
+      players = [];
+      assignments = [];
+
+      // Obtener nombres y contraseñas
+      const numPlayers = document.getElementById("num-players").value;
+      for (let i = 0; i < numPlayers; i++) {
+        const name = document.getElementById(`player-name-${i}`).value;
+        const password = document.getElementById(`player-pass-${i}`).value;
+        if (name === "" || password === "") {
+          alert("Por favor, completa todos los nombres y contraseñas.");
+          return;
+        }
+        players.push({ name, password });
+      }
+
+      // Crear asignaciones sin autoregalos
+      do {
+        assignments = [...players].sort(() => Math.random() - 0.5);
+      } while (players.some((p, i) => p.name === assignments[i].name));
+
+      document.getElementById("setup-section").classList.add("hidden");
+      document.getElementById("sorteo-section").classList.remove("hidden");
+
+      // Mostrar botones de jugadores
+      const playersList = document.getElementById("players-list");
+      playersList.innerHTML = "";
+      players.forEach((player, index) => {
+        playersList.innerHTML += `
+          <button class="player-button" onclick="revealGift(${index})">${player.name}</button>
+        `;
+      });
+    }
+
+    function revealGift(index) {
+      const password = prompt("Introduce tu contraseña:");
+      if (password === players[index].password) {
+        alert(`¡Le haces el regalo a ${assignments[index].name}!`);
+        clearScreen();
+      } else {
+        alert("Contraseña incorrecta. Intenta de nuevo.");
+      }
+    }
+
+    function showDetails() {
+      document.getElementById("sorteo-section").classList.add("hidden");
+      document.getElementById("final-details").classList.remove("hidden");
+
+      const details = document.getElementById("details-info");
+      details.innerHTML = `
+        El sorteo se realizará el <strong>${sorteoDay} de diciembre</strong>.<br>
+        El precio máximo del regalo es de <strong>${maxPrice}€</strong>.
+      `;
+    }
+
+    function clearScreen() {
+      for (let i = 0; i < 30; i++) {
+        console.log("\n");
+      }
+    }
+  </script>
+</body>
+</html>
