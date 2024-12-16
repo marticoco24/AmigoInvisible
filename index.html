@@ -11,166 +11,208 @@
       background-color: #f7f7f7; 
       text-align: center;
     }
-    h1 { color: #333; }
-    input, button { margin: 10px; padding: 10px; font-size: 16px; }
-    button { cursor: pointer; }
-    .hidden { display: none; }
-    #players-list button { margin: 5px; }
-    #finish-button {
+    h1 { 
+      color: #fff;
+      background-color: #ff4d4d;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 30px;
+      margin-bottom: 20px;
+      background-image: url('https://img.icons8.com/color/48/000000/christmas.png');
+      background-position: right;
+      background-repeat: no-repeat;
+    }
+    input, button { 
+      margin: 10px; 
+      padding: 15px; 
+      font-size: 16px; 
+      width: 80%;
+      max-width: 400px; 
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button { 
+      cursor: pointer;
+      border: none;
       background-color: #28a745;
+      color: white;
+    }
+    button:hover { 
+      background-color: #218838;
+    }
+    .hidden { 
+      display: none; 
+    }
+    #finish-button {
+      background-color: #ff4d4d;
       color: white;
       font-size: 20px;
       padding: 15px;
-      border: none;
       border-radius: 10px;
       margin-top: 20px;
+      width: 80%;
+      max-width: 400px;
     }
     #finish-button:hover {
-      background-color: #218838;
+      background-color: #e63e3e;
     }
     .player-button {
       background-color: #007bff;
       color: white;
-      border: none;
-      border-radius: 5px;
+      border-radius: 8px;
+      padding: 10px 20px;
+      width: 80%;
+      max-width: 400px;
     }
     .player-button:hover {
       background-color: #0056b3;
     }
+    label {
+      font-size: 18px;
+      color: #333;
+      text-align: left;
+      width: 100%;
+      display: inline-block;
+    }
+    .container {
+      margin-top: 20px;
+    }
+
+    /* Estilo Responsive */
+    @media (max-width: 600px) {
+      body {
+        font-size: 18px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      input, button {
+        font-size: 14px;
+        padding: 12px;
+      }
+    }
+
+    /* Efectos navideños */
+    .snowflake {
+      position: absolute;
+      top: -10px;
+      z-index: 999;
+      font-size: 40px;
+      color: #ff4d4d;
+      animation: snow 10s linear infinite;
+    }
+
+    @keyframes snow {
+      0% { top: -10px; left: 100%; }
+      100% { top: 100%; left: 0; }
+    }
   </style>
 </head>
 <body>
-  <h1>Sorteo de Regalos</h1>
+  <h1>Sorteo de Regalos de Navidad</h1>
   
   <!-- Sección de configuración inicial -->
-  <div id="input-section">
-    <label>Número de jugadores: 
-      <input type="number" id="num-players" min="2" required>
-    </label><br><br>
-    <label>Precio máximo del regalo (€): 
-      <input type="number" id="max-price" min="1" required>
-    </label><br><br>
-    <label>Día del sorteo (diciembre): 
-      <input type="number" id="sorteo-day" min="1" max="31" required>
-    </label><br><br>
-    <button onclick="startSetup()">Configurar Jugadores</button>
+  <div id="input-section" class="container">
+    <label for="num-players">Número de jugadores:</label>
+    <input type="number" id="num-players" min="2" required>
+    
+    <label for="max-price">Precio máximo del regalo (€):</label>
+    <input type="number" id="max-price" min="1" required>
+    
+    <label for="sorteo-day">Día del sorteo (diciembre):</label>
+    <input type="number" id="sorteo-day" min="1" max="31" required>
+    
+    <button onclick="startSetup()">Configurar Sorteo</button>
   </div>
 
-  <!-- Sección para ingresar nombres y contraseñas -->
-  <div id="setup-section" class="hidden">
-    <h2>Introduce los nombres y contraseñas</h2>
-    <div id="players-setup"></div>
-    <button onclick="startSorteo()">Iniciar Sorteo</button>
+  <!-- Sección para agregar jugadores y contraseñas -->
+  <div id="player-section" class="hidden container">
+    <h2>Introduce los jugadores</h2>
+    <label for="player-name">Nombre del jugador:</label>
+    <input type="text" id="player-name" required>
+    
+    <label for="player-password">Contraseña:</label>
+    <input type="password" id="player-password" required>
+    
+    <button onclick="addPlayer()">Añadir Jugador</button>
   </div>
 
-  <!-- Sección de sorteo -->
-  <div id="sorteo-section" class="hidden">
-    <h2>Selecciona tu nombre para ver a quién le haces el regalo</h2>
+  <!-- Sección de sorteo para ver a quién le haces el regalo -->
+  <div id="sorteo-section" class="hidden container">
+    <h2>A quién le haces el regalo?</h2>
     <div id="players-list"></div>
-    <button id="finish-button" onclick="showDetails()">Terminar</button>
+    <button id="finish-button" class="hidden" onclick="showResults()">Terminar</button>
   </div>
 
-  <!-- Vista final con detalles del sorteo -->
-  <div id="final-details" class="hidden">
+  <!-- Pantalla de resultados -->
+  <div id="results-section" class="hidden container">
     <h2>Detalles del Sorteo</h2>
-    <p id="details-info"></p>
+    <img src="https://img.icons8.com/color/48/000000/christmas" alt="Santa Claus" />
+    <p><strong>Precio del regalo:</strong> <span id="result-price"></span>€</p>
+    <p><strong>Día del Sorteo:</strong> 12/<span id="result-day"></span></p>
   </div>
 
   <script>
     let players = [];
-    let assignments = [];
+    let numPlayers = 0;
     let maxPrice = 0;
     let sorteoDay = 0;
 
     function startSetup() {
-      const numPlayers = document.getElementById("num-players").value;
-      maxPrice = document.getElementById("max-price").value;
-      sorteoDay = document.getElementById("sorteo-day").value;
-
-      if (numPlayers < 2 || maxPrice < 1 || sorteoDay < 1 || sorteoDay > 31) {
-        alert("Por favor, completa todos los campos correctamente.");
-        return;
-      }
-
-      document.getElementById("input-section").classList.add("hidden");
-      document.getElementById("setup-section").classList.remove("hidden");
-
-      const setupDiv = document.getElementById("players-setup");
-      setupDiv.innerHTML = "";
-
-      for (let i = 0; i < numPlayers; i++) {
-        setupDiv.innerHTML += `
-          <div>
-            <label>Nombre del jugador ${i + 1}:
-              <input type="text" id="player-name-${i}" required>
-            </label>
-            <label>Contraseña:
-              <input type="password" id="player-pass-${i}" required>
-            </label>
-          </div><br>
-        `;
-      }
-    }
-
-    function startSorteo() {
-      players = [];
-      assignments = [];
-
-      // Obtener nombres y contraseñas
-      const numPlayers = document.getElementById("num-players").value;
-      for (let i = 0; i < numPlayers; i++) {
-        const name = document.getElementById(`player-name-${i}`).value;
-        const password = document.getElementById(`player-pass-${i}`).value;
-        if (name === "" || password === "") {
-          alert("Por favor, completa todos los nombres y contraseñas.");
-          return;
-        }
-        players.push({ name, password });
-      }
-
-      // Crear asignaciones sin autoregalos
-      do {
-        assignments = [...players].sort(() => Math.random() - 0.5);
-      } while (players.some((p, i) => p.name === assignments[i].name));
-
-      document.getElementById("setup-section").classList.add("hidden");
-      document.getElementById("sorteo-section").classList.remove("hidden");
-
-      // Mostrar botones de jugadores
-      const playersList = document.getElementById("players-list");
-      playersList.innerHTML = "";
-      players.forEach((player, index) => {
-        playersList.innerHTML += `
-          <button class="player-button" onclick="revealGift(${index})">${player.name}</button>
-        `;
-      });
-    }
-
-    function revealGift(index) {
-      const password = prompt("Introduce tu contraseña:");
-      if (password === players[index].password) {
-        alert(`¡Le haces el regalo a ${assignments[index].name}!`);
-        clearScreen();
+      numPlayers = document.getElementById('num-players').value;
+      maxPrice = document.getElementById('max-price').value;
+      sorteoDay = document.getElementById('sorteo-day').value;
+      if (numPlayers && maxPrice && sorteoDay) {
+        document.getElementById('input-section').classList.add('hidden');
+        document.getElementById('player-section').classList.remove('hidden');
       } else {
-        alert("Contraseña incorrecta. Intenta de nuevo.");
+        alert("Por favor, completa todos los campos.");
       }
     }
 
-    function showDetails() {
-      document.getElementById("sorteo-section").classList.add("hidden");
-      document.getElementById("final-details").classList.remove("hidden");
+    function addPlayer() {
+      let playerName = document.getElementById('player-name').value;
+      let playerPassword = document.getElementById('player-password').value;
+      if (playerName && playerPassword) {
+        players.push({ name: playerName, password: playerPassword });
+        document.getElementById('player-name').value = '';
+        document.getElementById('player-password').value = '';
 
-      const details = document.getElementById("details-info");
-      details.innerHTML = `
-        El sorteo se realizará el <strong>${sorteoDay} de diciembre</strong>.<br>
-        El precio máximo del regalo es de <strong>${maxPrice}€</strong>.
-      `;
+        if (players.length == numPlayers) {
+          document.getElementById('player-section').classList.add('hidden');
+          document.getElementById('sorteo-section').classList.remove('hidden');
+          showPlayerButtons();
+        }
+      } else {
+        alert("Por favor, ingresa un nombre y una contraseña.");
+      }
     }
 
-    function clearScreen() {
-      for (let i = 0; i < 30; i++) {
-        console.log("\n");
-      }
+    function showPlayerButtons() {
+      let playersList = document.getElementById('players-list');
+      playersList.innerHTML = '';
+      players.forEach((player, index) => {
+        let button = document.createElement('button');
+        button.classList.add('player-button');
+        button.innerHTML = player.name;
+        button.onclick = function() {
+          let password = prompt(`Introduce la contraseña para ${player.name}:`);
+          if (password === player.password) {
+            alert(`${player.name} le hará el regalo a: ${players[(index + 1) % players.length].name}`);
+          } else {
+            alert("Contraseña incorrecta.");
+          }
+        };
+        playersList.appendChild(button);
+      });
+      document.getElementById('finish-button').classList.remove('hidden');
+    }
+
+    function showResults() {
+      document.getElementById('sorteo-section').classList.add('hidden');
+      document.getElementById('results-section').classList.remove('hidden');
+      document.getElementById('result-price').innerText = maxPrice;
+      document.getElementById('result-day').innerText = sorteoDay;
     }
   </script>
 </body>
